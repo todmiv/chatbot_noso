@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  bot:
+    build: .
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: sro
+      POSTGRES_USER: sro
+      POSTGRES_PASSWORD: sro
+  redis:
+    image: redis:7-alpine
