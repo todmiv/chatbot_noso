@@ -1,16 +1,35 @@
-version: "3.8"
 services:
-  bot:
+  app:
     build: .
     env_file: .env
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_DB: sro
-      POSTGRES_USER: sro
-      POSTGRES_PASSWORD: sro
+      POSTGRES_DB: sro_noso
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Pass1964hfpf
+      POSTGRES_INITDB_ARGS: "--locale=ru_RU.utf8"
+      LANG: ru_RU.utf8
+      LC_ALL: ru_RU.utf8
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
