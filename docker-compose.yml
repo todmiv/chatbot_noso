@@ -1,4 +1,6 @@
+# Конфигурация Docker Compose для разработки
 services:
+  # Основной сервис приложения
   app:
     build: .
     env_file: .env
@@ -10,15 +12,18 @@ services:
     ports:
       - "8000:8000"
 
+  # Сервис PostgreSQL для хранения данных
   postgres:
-    image: postgres:15
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
     environment:
       POSTGRES_DB: sro_noso
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: Pass1964hfpf
-      POSTGRES_INITDB_ARGS: "--locale=ru_RU.utf8"
-      LANG: ru_RU.utf8
-      LC_ALL: ru_RU.utf8
+      POSTGRES_INITDB_ARGS: "--locale=en_US.utf8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -27,9 +32,14 @@ services:
       timeout: 5s
       retries: 5
 
+  # Сервис Redis для кеширования и FSM
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6380:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
+
+# Тома для хранения данных
+volumes:
+  postgres_data:
