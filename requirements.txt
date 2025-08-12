@@ -1,11 +1,23 @@
-aiogram==3.6.0
-pydantic==2.7.4
-asyncpg==0.29.0
-redis==5.0.4
-python-dotenv==1.0.1
-openai==1.30.5
-pypdf2==3.0.1
-sentence-transformers==2.7.0
-faiss-cpu==1.8.0
-pytest==8.2.1
-pytest-asyncio==0.23.7
+# Основные зависимости:
+pydantic-settings==2.10.1  # Для работы с конфигурацией
+aiogram==3.6.0  # Фреймворк Telegram бота
+pydantic==2.7.4  # Валидация данных
+asyncpg==0.29.0  # Асинхронный PostgreSQL клиент
+redis==5.0.4  # Redis клиент
+
+# AI компоненты:
+openai==1.30.5  # OpenAI API клиент
+sentence-transformers==2.7.0  # Векторизация текста
+faiss-cpu==1.8.0  # Векторный поиск
+
+# Обработка документов:
+pypdf==5.9.0  # Работа с PDF
+python-docx==1.2.0  # Работа с DOCX
+numpy==1.26.4  # Математические операции
+
+# Тестирование:
+pytest==8.2.1  # Основной фреймворк тестирования
+pytest-asyncio==0.23.7  # Асинхронные тесты
+
+# Утилиты:
+python-dotenv==1.0.1  # Работа с .env файлами
