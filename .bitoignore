@@ -1,0 +1,14 @@
+# Игнорировать все файлы
+*.exe
+*.pyc
+*.pdf
+*.docx
+*.jpg
+
+# Исключить резервное копирование каталогов
+documents/**
+venv/**
+chatbot_noso/documents/**
+chatbot_noso/venv/**
+chatbot_noso/chatbot_noso/documents/**
+chatbot_noso/chatbot_noso/venv/**
