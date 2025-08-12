@@ -1,0 +1,17 @@
+{
+  "models": [
+    {
+      "title": "DeepSeek-R1",
+      "provider": "openai",
+      "model": "deepseek-chat",
+      "apiKey": "sk-cf1e25cf34c34eecbf4f690652694097",  // ← Вставьте сюда ваш ключ
+      "api_base": "https://api.deepseek.com/v1",
+      "context_length": 16384  // Длина контекста 16K токенов
+    }
+  ],
+  "default_model": "DeepSeek-R1",
+  "rag": {
+    "enabled": true,           // Включение индексации проекта
+    "similarity_top_k": 5      // Количество релевантных фрагментов кода
+  }
+}
