@@ -1,9 +1,11 @@
 from app.config import settings
 import asyncpg
 import redis.asyncio as redis
-from typing import AsyncGenerator
+from typing import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import date
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
 # Класс для управления подключениями к PostgreSQL и Redis
 class Database:
@@ -13,13 +15,35 @@ class Database:
 
     async def init(self):
         self.pool = await asyncpg.create_pool(self.db_url)
-        self.redis = redis.from_url(self.redis_url)
+        self.redis = redis.from_url(
+            self.redis_url,
+            password="redispass",
+            socket_timeout=10,
+            socket_connect_timeout=10
+        )
 
     async def close(self):
         await self.pool.close()
         await self.redis.aclose()
 
 db = Database(settings.database_url, settings.redis_url)
+
+# Инициализация SQLAlchemy
+engine = create_async_engine(settings.database_url.replace("postgresql://", "postgresql+asyncpg://"))
+async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+async def init_db(db_url: str = None):
+    """Инициализация подключения к БД"""
+    if db_url:
+        global engine, async_session
+        engine = create_async_engine(db_url)
+        async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    await db.init()
+
+async def get_db() -> AsyncIterator[AsyncSession]:
+    """Получение сессии БД"""
+    async with async_session() as session:
+        yield session
 
 # Получение пользователя по ID из БД
 async def get_user(user_id: int):
