@@ -64,7 +64,7 @@ class DocumentService:
             return ""
 
     # Поиск документов по запросу с использованием векторного поиска
-async def search(self, query: str, top_k: int = 5) -> List[Dict]:
+    async def search(self, query: str, top_k: int = 5) -> List[Dict]:
         query_emb = self.model.encode([query])
         distances, idx = self.index.search(query_emb, top_k)
         return [
