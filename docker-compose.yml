@@ -1,22 +1,8 @@
 # Конфигурация Docker Compose для разработки
 services:
-  # Основной сервис приложения
-  app:
-    build: .
-    env_file: .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    ports:
-      - "8000:8000"
-
   # Сервис PostgreSQL для хранения данных
   postgres:
-    build:
-      context: .
-      dockerfile: Dockerfile.postgres
+    image: postgres:15-alpine
     environment:
       POSTGRES_DB: sro_noso
       POSTGRES_USER: postgres
@@ -28,17 +14,25 @@ services:
       - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
 
   # Сервис Redis для кеширования и FSM
   redis:
     image: redis:7-alpine
+    command: redis-server --save 60 1 --loglevel warning
+    environment:
+      REDIS_PASSWORD: redispass
     ports:
       - "6380:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "redispass", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
 
 # Тома для хранения данных
 volumes:
