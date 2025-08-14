@@ -1,6 +1,4 @@
-# Конфигурация Docker Compose для разработки
 services:
-  # Сервис PostgreSQL для хранения данных
   postgres:
     image: postgres:15-alpine
     environment:
@@ -12,6 +10,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    extra_hosts:  # Добавьте этот блок
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -19,10 +19,9 @@ services:
       retries: 10
     restart: unless-stopped
 
-  # Сервис Redis для кеширования и FSM
   redis:
     image: redis:7-alpine
-    command: redis-server --save 60 1 --loglevel warning
+    command: redis-server --save 60 1 --loglevel warning --requirepass redispass
     environment:
       REDIS_PASSWORD: redispass
     ports:
@@ -34,6 +33,5 @@ services:
       retries: 10
     restart: unless-stopped
 
-# Тома для хранения данных
 volumes:
   postgres_data:
