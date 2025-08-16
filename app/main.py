@@ -8,6 +8,7 @@ from app.bot.handlers import router
 from app.database.connection import lifespan
 
 bot = Bot(settings.bot_token)
+print(f"Using Redis URL: {settings.redis_url}")  # Временная отладочная строка
 storage = RedisStorage.from_url(settings.redis_url)
 dp = Dispatcher(storage=storage, lifespan=lifespan)
 dp.include_router(router)
