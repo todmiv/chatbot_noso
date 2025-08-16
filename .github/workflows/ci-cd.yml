@@ -14,6 +14,7 @@ jobs:
         image: postgres:15
         env:
           POSTGRES_PASSWORD: testpass
+          POSTGRES_USER: postgres
           POSTGRES_DB: testdb
         ports:
           - 5432:5432
@@ -25,7 +26,7 @@ jobs:
       redis:
         image: redis:7
         ports:
-          - 6379:6379
+          - 6380:6379
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -62,9 +63,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: yourdockerhubusername/chatbot_noso:latest
+          tags: todmiv/chatbot_noso:latest
       - name: Deploy to staging
         run: |
-          # Здесь команды для деплоя, например, kubectl apply или вызов webhook
           echo "Deploying to staging..."
-          # Пример: curl -X POST ${{ secrets.STAGING_WEBHOOK_URL }}
+          curl -X POST ${{ secrets.STAGING_WEBHOOK_URL }} -H "Content-Type: application/json" -d '{"image_tag": "${{ github.sha }}"}'
