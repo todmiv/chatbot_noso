@@ -1,8 +1,9 @@
-# test_connectivity.py
 import asyncio
 import asyncpg
 import redis.asyncio as redis
+import pytest
 
+@pytest.mark.asyncio
 async def test_postgres():
     try:
         conn = await asyncpg.connect(
@@ -12,11 +13,13 @@ async def test_postgres():
             host='host.docker.internal',
             port=5432
         )
-        print("PostgreSQL: OK")
+        version = await conn.fetchval("SELECT version()")
+        print(f"PostgreSQL version: {version}")
         await conn.close()
     except Exception as e:
-        print(f"PostgreSQL error: {str(e)}")
+        pytest.fail(f"PostgreSQL error: {str(e)}")
 
+@pytest.mark.asyncio
 async def test_redis():
     try:
         r = redis.Redis(
@@ -30,7 +33,4 @@ async def test_redis():
         print("Redis: OK")
         await r.aclose()
     except Exception as e:
-        print(f"Redis error: {str(e)}")
-
-asyncio.run(test_postgres())
-asyncio.run(test_redis())
+        pytest.fail(f"Redis error: {str(e)}")
