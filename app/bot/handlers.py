@@ -35,8 +35,8 @@ async def start_registration(message: Message, state: FSMContext):
 @router.message(Registration.inn)
 async def process_inn(message: Message, state: FSMContext):
     inn = message.text.strip()
-    if not (len(inn) == 12 and inn.isdigit()):
-        await message.answer("ИНН должен состоять из 12 цифр. Попробуйте снова.")
+    if not ((len(inn) == 10 or len(inn) == 12) and inn.isdigit()):
+        await message.answer("ИНН должен состоять из 10 (для организаций) или 12 (для физических лиц) цифр. Попробуйте снова.")
         return
     
     try:
@@ -88,3 +88,5 @@ async def ai_answer(message: Message):
         answer = f"{answer}\n\n📚 Использованные документы:\n{sources}"
     
     await message.answer(answer, reply_markup=MAIN_MENU)
+
+
