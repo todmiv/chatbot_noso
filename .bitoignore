@@ -1,14 +1,56 @@
-# Игнорировать все файлы
+# Системные файлы и директории
+.git/
+.github/
+.pytest_cache
+node_modules/
+venv/
+env/
+__pycache__/
+.vscode/
+.idea/
+.DS_Store
+# Сборки и артефакты
+dist/
+build/
+out/
+target/
+*.min.js
+*.min.css
+*.bundle.js
+# Большие файлы данных
+*.csv
+*.json
+*.xml
+*.log
+*.sql
+*.db
+*.sqlite
+*.zip
+*.tar
+*.gz
+*.rar
+*.7z
 *.exe
 *.pyc
+# Медиафайлы
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.mp4
+*.mp3
+*.wav
+*.avi
+# Документация
+docs/
+documentation/
+documents/
+chatbot_noso/documents/
+chatbot_noso/venv/
+chatbot_noso/chatbot_noso/documents/
+chatbot_noso/chatbot_noso/venv/
 *.pdf
 *.docx
-*.jpg
-
-# Исключить резервное копирование каталогов
-documents/**
-venv/**
-chatbot_noso/documents/**
-chatbot_noso/venv/**
-chatbot_noso/chatbot_noso/documents/**
-chatbot_noso/chatbot_noso/venv/**
+*.md
+!README.md
