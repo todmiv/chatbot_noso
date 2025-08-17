@@ -18,7 +18,11 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(sa.DateTime, server_default=sa.func.now())
     updated_at: Mapped[datetime] = mapped_column(sa.DateTime, server_default=sa.func.now(), onupdate=sa.func.now())
 
-    __table_args__ = (sa.CheckConstraint("role IN ('guest', 'member', 'admin')", name='check_role'),)
+    __table_args__ = (
+    sa.CheckConstraint("role IN ('guest', 'member', 'admin')", name='check_role'),
+    # Новое ограничение: ИНН может быть NULL или иметь длину 10 или 12 символов
+    sa.CheckConstraint("(inn IS NULL) OR (LENGTH(inn) = 10) OR (LENGTH(inn) = 12)", name='check_inn_length') # <-- Новое ограничение
+)
 
 # Модель документа СРО (PDF/DOCX файлы)
 class Document(Base):
