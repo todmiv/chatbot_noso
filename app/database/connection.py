@@ -1,6 +1,6 @@
 # app/database/connection.py
-import logging
-import asyncio  # Импортируем asyncio для использования asyncio.sleep в init_db
+import logging  # <-- Убедиться, что импортирован
+import asyncio  # <-- Убедиться, что импортирован
 from app.config import settings
 import asyncpg
 import redis.asyncio as redis
@@ -9,78 +9,68 @@ from contextlib import asynccontextmanager
 from datetime import date
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-# from sqlalchemy.exc import DBAPIError # Убираем неиспользуемый импорт, если он не нужен в init_db
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__) # <-- Убедиться, что создан
 
 class Database:
     def __init__(self, db_url: str, redis_url: str):
         self.db_url = db_url
         self.redis_url = redis_url
-        # Инициализируем атрибуты pool и redis как None или без инициализации,
-        # они будут созданы в методе init.
+        # Инициализировать атрибуты как None для явности
         self.pool = None
         self.redis = None
 
     async def init(self):
         """Инициализирует соединения с PostgreSQL и Redis."""
-        logger.info(f"Creating PostgreSQL connection pool with URL: REDACTED_FOR_LOG") # Не логируем полный URL из соображений безопасности
+        logger.info("Начало инициализации пула соединений PostgreSQL...")
         try:
-            # Создаём пул соединений с PostgreSQL
             self.pool = await asyncpg.create_pool(self.db_url)
-            logger.info("PostgreSQL connection pool created successfully.")
+            logger.info("Пул соединений PostgreSQL успешно создан.")
         except Exception as e:
-            logger.error(f"Failed to create PostgreSQL connection pool: {e}", exc_info=True)
-            # Если пул не создан, дальнейшая работа с БД невозможна
+            logger.error(f"Ошибка при создании пула PostgreSQL: {e}", exc_info=True)
             raise
 
-        logger.info(f"Creating Redis client with URL: REDACTED_FOR_LOG") # Не логируем полный URL из соображений безопасности
+        logger.info("Начало инициализации клиента Redis...")
         try:
-            # Создаём клиент Redis.
-            # Примечание: redis.from_url обычно не вызывает await и не подключается сразу.
-            # Подключение происходит при первом запросе.
-            # Пароль и таймауты можно указать в redis_url или явно, как сделано ниже.
-            # Убедитесь, что пароль в redis_url совпадает с тем, что указан в docker-compose.yml.
-            # Если пароль уже в redis_url, указывать его здесь снова не обязательно, но можно для явности.
+            # Убираем захардкоженный пароль
             self.redis = redis.from_url(
                 self.redis_url,
-                # password="redispass", # Убедитесь, что пароль правильный и соответствует docker-compose.yml
-                # Если пароль уже в URL, можно не указывать. Если указан и в URL, и здесь, используется значение из from_url.
                 socket_timeout=10,
                 socket_connect_timeout=10
             )
-            logger.info("Redis client created successfully.")
+            logger.info("Клиент Redis успешно создан.")
         except Exception as e:
-             logger.error(f"Failed to create Redis client: {e}", exc_info=True)
-             # Закрываем пул PostgreSQL, если Redis не подключился (хорошая практика)
+             logger.error(f"Ошибка при создании клиента Redis: {e}", exc_info=True)
              if self.pool:
                  await self.pool.close()
-                 self.pool = None # Сбрасываем пул
-                 logger.info("Closed PostgreSQL pool due to Redis init failure.")
-             raise # Перебрасываем исключение
+                 self.pool = None
+                 logger.info("Пул PostgreSQL закрыт из-за ошибки инициализации Redis.")
+             raise
 
     async def close(self):
-        """Закрывает соединения с PostgreSQL и Redis."""
-        logger.info("Closing database connections...")
+        logger.info("Начало закрытия соединений с БД...")
+        # ... (остальной код close как в предыдущем примере) ...
         if self.pool:
             try:
                 await self.pool.close()
-                logger.info("PostgreSQL connection pool closed.")
+                logger.info("Пул соединений PostgreSQL закрыт.")
             except Exception as e:
-                logger.error(f"Error closing PostgreSQL pool: {e}")
+                logger.error(f"Ошибка при закрытии пула PostgreSQL: {e}")
         if self.redis:
             try:
-                await self.redis.aclose() # Используем aclose() для асинхронного клиента
-                logger.info("Redis connection closed.")
+                await self.redis.aclose()
+                logger.info("Соединение с Redis закрыто.")
             except Exception as e:
-                logger.error(f"Error closing Redis connection: {e}")
-        logger.info("Database connections closed.")
+                logger.error(f"Ошибка при закрытии соединения Redis: {e}")
+        logger.info("Закрытие соединений с БД завершено.")
 
 # Создание глобального экземпляра Database
 db = Database(settings.database_url, settings.redis_url)
 
 # SQLAlchemy engine и sessionmaker для альтернативного доступа (например, через get_db)
-engine = create_async_engine(settings.database_url.replace("postgresql://", "postgresql+asyncpg://"))
+# Исправляем замену префикса URL. Лучше использовать URL напрямую, если он уже правильный.
+# engine = create_async_engine(settings.database_url.replace("postgresql://", "postgresql+asyncpg://"))
+engine = create_async_engine(settings.database_url) # <-- Используем URL как есть
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 # Функция init_db для альтернативной инициализации или тестов
@@ -88,38 +78,36 @@ async def init_db(db_url: str = None):
     """Функция для инициализации БД, в том числе с повторными попытками.
        Используется в тестах или отдельно от lifespan.
     """
+    # Импортируем asyncio внутри функции, если он не импортирован глобально
+    # import asyncio # <-- Уже импортирован глобально
     max_retries = 3
     retry_delay = 2
 
     for attempt in range(max_retries):
         try:
-            logger.info(f"Attempting to initialize database connection (attempt {attempt+1})...")
+            logger.info(f"Попытка инициализации БД #{attempt+1}...")
             # Если передан новый URL, обновляем engine и async_session
             if db_url:
                 global engine, async_session
-                engine = create_async_engine(db_url.replace("postgresql://", "postgresql+asyncpg://"))
+                # Исправляем замену префикса URL
+                # engine = create_async_engine(db_url.replace("postgresql://", "postgresql+asyncpg://"))
+                engine = create_async_engine(db_url) # <-- Используем URL как есть
                 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
                 # Также обновляем URL в экземпляре db для последующего использования в db.init()
                 db.db_url = db_url
 
             # Вызываем метод init глобального экземпляра db
             await db.init()
-            logger.info(f"Database connection initialized successfully on attempt {attempt+1}.")
+            logger.info(f"Инициализация БД успешна на попытке #{attempt+1}.")
             return
-        # except DBAPIError as e: # Если не используем DBAPIError, убираем этот блок
-        #     logger.error(f"PostgreSQL DBAPI error (attempt {attempt+1}): {str(e)}")
-        #     if attempt < max_retries - 1:
-        #         await asyncio.sleep(retry_delay)
-        #         continue
-        #     raise ConnectionError(f"Could not connect to PostgreSQL (DBAPI) after {max_retries} attempts: {str(e)}")
         except Exception as e: # Ловим все остальные ошибки
-            logger.error(f"Database connection attempt {attempt+1} failed: {str(e)}", exc_info=True)
+            logger.error(f"Попытка инициализации БД #{attempt+1} не удалась: {str(e)}", exc_info=True)
             if attempt < max_retries - 1:
-                logger.info(f"Waiting {retry_delay} seconds before retry...")
-                await asyncio.sleep(retry_delay)
+                logger.info(f"Ожидание {retry_delay} секунд перед повторной попыткой...")
+                await asyncio.sleep(retry_delay) # <-- Теперь asyncio доступен
                 continue
-            logger.error(f"Database connection failed after {max_retries} attempts.")
-            raise ConnectionError(f"Database connection failed after {max_retries} attempts: {str(e)}")
+            logger.error(f"Инициализация БД не удалась после {max_retries} попыток.")
+            raise ConnectionError(f"Инициализация БД не удалась после {max_retries} попыток: {str(e)}")
 
 # Асинхронный генератор для получения SQLAlchemy сессии
 async def get_db() -> AsyncIterator[AsyncSession]:
@@ -185,17 +173,17 @@ async def check_question_limit(user_id: int, role: str) -> bool:
 # Lifespan менеджер для aiogram
 @asynccontextmanager
 async def lifespan(app):
-    """Асинхронный контекстный менеджер для инициализации и закрытия ресурсов при запуске/остановке приложения."""
+    """Асинхронный контекстный менеджер для инициализации и закрытия ресурсов."""
     try:
-        logger.info("Starting database initialization via lifespan...")
-        await db.init() # Используем метод init глобального экземпляра
-        logger.info("Database initialization via lifespan completed successfully.")
-        yield # Передаём управление приложению
+        logger.info("LIFESPAN HAS BEEN ENTERED") # <-- Убедиться, что есть
+        logger.info("Lifespan: Начало инициализации БД через lifespan...")
+        await db.init()
+        logger.info("Lifespan: Инициализация БД через lifespan успешно завершена.")
+        yield
     except Exception as e:
-        logger.error(f"Database initialization failed in lifespan: {e}", exc_info=True)
-        # Пробрасываем исключение, чтобы остановить запуск приложения
+        logger.critical(f"Lifespan: Критическая ошибка инициализации БД: {e}", exc_info=True)
         raise
     finally:
-        logger.info("Starting database connection cleanup via lifespan...")
-        await db.close() # Закрываем соединения
-        logger.info("Database connection cleanup via lifespan completed.")
+        logger.info("Lifespan: Начало закрытия соединений с БД...")
+        await db.close()
+        logger.info("Lifespan: Закрытие соединений с БД завершено.")
