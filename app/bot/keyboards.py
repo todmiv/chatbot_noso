@@ -4,7 +4,7 @@ MAIN_MENU = ReplyKeyboardMarkup(
     keyboard=[
         [
             KeyboardButton(text="👤 Профиль"),
-            KeyboardButton(text="❓ Вопрос ИИ")
+            KeyboardButton(text="❓ Задайте вопрос")
         ],
         [
             KeyboardButton(text="📁 Документы"),
